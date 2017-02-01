@@ -71,11 +71,11 @@ if __name__ == '__main__':
         #   model = model_from_json(json.loads(jfile.read()))\
         #
         # instead.
-        model = model_from_json(jfile.read())
+        model = model_from_json(json.loads(jfile.read()))
 
 
     model.compile("adam", "mse")
-    weights_file = args.model.replace('json', 'h5')
+    weights_file = args.model.replace('json', 'keras')
     model.load_weights(weights_file)
 
     # wrap Flask application with engineio's middleware
