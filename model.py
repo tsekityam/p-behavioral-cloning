@@ -1,6 +1,11 @@
 import csv
+import json
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten, Lambda, ELU
+from keras.layers.convolutional import Convolution2D
 import matplotlib.image as mpimg
 import numpy as np
+import os
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
@@ -47,6 +52,34 @@ def load_data(drive_log):
 
     return X_train, y_train
 
+# model developed by comma.ai
+def get_model(input_shape):
+    row = input_shape[0]
+    col = input_shape[1]
+    ch = input_shape[2]
+
+    print(row, col, ch)
+
+    model = Sequential()
+    model.add(Lambda(lambda x: x/127.5 - 1.,
+    input_shape=(row, col, ch),
+    output_shape=(row, col, ch)))
+    model.add(Convolution2D(8, 8, 16, subsample=(4, 4), border_mode="same"))
+    model.add(ELU())
+    model.add(Convolution2D(5, 5, 32, subsample=(2, 2), border_mode="same"))
+    model.add(ELU())
+    model.add(Convolution2D(5, 5, 64, subsample=(2, 2), border_mode="same"))
+    model.add(Flatten())
+    model.add(Dropout(.2))
+    model.add(ELU())
+    model.add(Dense(512))
+    model.add(Dropout(.5))
+    model.add(ELU())
+    model.add(Dense(1))
+
+    model.compile(optimizer="adam", loss="mse")
+
+    return model
 
 def main(_):
     # load training data
@@ -55,6 +88,17 @@ def main(_):
     print('Image Shape: ', X_train.shape[1:])
     print('Training Data Count:', len(X_train))
 
+    model = get_model(X_train.shape[1:])
+    model.fit(X_train, y_train, nb_epoch=10, validation_split=0.2)
+
+    print("Saving model weights and configuration file.")
+
+    if not os.path.exists("./outputs/steering_model"):
+        os.makedirs("./outputs/steering_model")
+
+    model.save_weights("./outputs/steering_model/steering_angle.keras", True)
+    with open('./outputs/steering_model/steering_angle.json', 'w') as outfile:
+        json.dump(model.to_json(), outfile)
 
 # parses flags and calls the `main` function above
 if __name__ == '__main__':
