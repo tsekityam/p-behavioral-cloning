@@ -43,18 +43,17 @@ def load_data(drive_log):
     y_brake = np.array(y_brake)
     y_speed = np.array(y_speed)
 
-    X_train, X_val, y_train, y_val = train_test_split(X_center, y_steering, test_size=0.33, random_state=0)
+    X_train, y_train = X_center, y_steering
 
-    return X_train, y_train, X_val, y_val
+    return X_train, y_train
 
 
 def main(_):
     # load training data
-    X_train, y_train, X_val, y_val = load_data(FLAGS.drive_log_file)
+    X_train, y_train = load_data(FLAGS.drive_log_file)
 
     print('Image Shape: ', X_train.shape[1:])
     print('Training Data Count:', len(X_train))
-    print('Validation Data Count:', len(X_val))
 
 
 # parses flags and calls the `main` function above
