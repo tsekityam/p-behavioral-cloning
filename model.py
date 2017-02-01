@@ -25,7 +25,7 @@ def load_data(drive_log):
         next(reader)    # skip the first row
 
         # TODO: load all rows from given data
-        for i in range(100):
+        for i in range(1000):
             row = next(reader)
             X_center.append(mpimg.imread(row[0]))
             X_left.append(mpimg.imread(row[1]))
