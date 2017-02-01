@@ -1,8 +1,8 @@
-import tensorflow as tf
 import csv
 import matplotlib.image as mpimg
 import numpy as np
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
