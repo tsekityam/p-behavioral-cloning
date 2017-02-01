@@ -92,8 +92,13 @@ def main(_):
     model.fit(X_train, y_train, nb_epoch=10, validation_split=0.2)
 
     print("Saving model weights and configuration file.")
-    model.save('model.h5')
-    
+
+    if not os.path.exists("./outputs/steering_model"):
+        os.makedirs("./outputs/steering_model")
+
+    model.save_weights("./outputs/steering_model/steering_angle.keras", True)
+    with open('./outputs/steering_model/steering_angle.json', 'w') as outfile:
+        json.dump(model.to_json(), outfile)
 
 # parses flags and calls the `main` function above
 if __name__ == '__main__':
