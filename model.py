@@ -6,6 +6,7 @@ from keras.layers.convolutional import Convolution2D
 import matplotlib.image as mpimg
 import numpy as np
 import os
+import preprocessing
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
@@ -54,21 +55,19 @@ def load_data(drive_log):
 
 # model developed by comma.ai
 def get_model(input_shape):
-    row = input_shape[0]
-    col = input_shape[1]
-    ch = input_shape[2]
-
-    print(row, col, ch)
+    ch = input_shape[0]
+    row = input_shape[1]
+    col = input_shape[2]
 
     model = Sequential()
     model.add(Lambda(lambda x: x/127.5 - 1.,
-    input_shape=(row, col, ch),
-    output_shape=(row, col, ch)))
-    model.add(Convolution2D(8, 8, 16, subsample=(4, 4), border_mode="same"))
+    input_shape=(ch, row, col),
+    output_shape=(ch, row, col)))
+    model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
     model.add(ELU())
-    model.add(Convolution2D(5, 5, 32, subsample=(2, 2), border_mode="same"))
+    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(ELU())
-    model.add(Convolution2D(5, 5, 64, subsample=(2, 2), border_mode="same"))
+    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(Flatten())
     model.add(Dropout(.2))
     model.add(ELU())
@@ -84,6 +83,8 @@ def get_model(input_shape):
 def main(_):
     # load training data
     X_train, y_train = load_data(FLAGS.drive_log_file)
+
+    X_train = preprocessing.preprocess_input(X_train)
 
     print('Image Shape: ', X_train.shape[1:])
     print('Training Data Count:', len(X_train))
