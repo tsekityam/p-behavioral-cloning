@@ -117,7 +117,7 @@ def main(_):
 
 
     model = get_model(get_sample_image().shape)
-    model.fit_generator(image_generator(), samples_per_epoch=get_training_data_count(), nb_epoch=10, nb_val_samples=get_training_data_count() * 0.2)
+    model.fit_generator(image_generator(), samples_per_epoch=get_training_data_count(), nb_epoch=5, nb_val_samples=get_training_data_count() * 0.2)
 
     print("Saving model weights and configuration file.")
 
