@@ -16,42 +16,24 @@ FLAGS = flags.FLAGS
 # command line flags
 flags.DEFINE_string('drive_log_file', '', "Drive log file (.csv)")
 
+batch_size = 256
+batch_index = 0
 
-def load_data(drive_log):
-    X_center = []
-    X_left = []
-    X_right = []
-    y_steering = []
-    y_throttle = []
-    y_brake = []
-    y_speed = []
-    with open(drive_log, 'rt') as csvfile:
+def get_sample_image():
+    with open(FLAGS.drive_log_file, 'rt') as csvfile:
         reader = csv.reader(csvfile, skipinitialspace=True)
 
         next(reader)    # skip the first row
 
-        # TODO: load all rows from given data
-        for i in range(1000):
-            row = next(reader)
-            X_center.append(mpimg.imread(row[0]))
-            X_left.append(mpimg.imread(row[1]))
-            X_right.append(mpimg.imread(row[2]))
-            y_steering.append(row[3])
-            y_throttle.append(row[4])
-            y_brake.append(row[5])
-            y_speed.append(row[6])
+        row = next(reader)
+        return preprocessing.preprocess_input([mpimg.imread(row[0])])[0]
 
-    X_center = np.array(X_center)
-    X_left = np.array(X_left)
-    X_right = np.array(X_right)
-    y_steering = np.array(y_steering)
-    y_throttle = np.array(y_throttle)
-    y_brake = np.array(y_brake)
-    y_speed = np.array(y_speed)
 
-    X_train, y_train = X_center, y_steering
+def get_training_data_count():
+    with open(FLAGS.drive_log_file, 'rt') as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+        return len(list(reader)) - 1
 
-    return X_train, y_train
 
 # model developed by comma.ai
 def get_model(input_shape):
@@ -80,17 +62,62 @@ def get_model(input_shape):
 
     return model
 
+n_samples = 500
+
+def image_generator():
+    global batch_index
+    X_center = []
+    # X_left = []
+    # X_right = []
+    y_steering = []
+    # y_throttle = []
+    # y_brake = []
+    # y_speed = []
+    with open(FLAGS.drive_log_file, 'rt') as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+
+        next(reader)    # skip the first row
+
+        if batch_size * batch_index > get_training_data_count():
+            batch_index = 0
+
+        # skip data used in previous batch
+        for i in range(batch_size * batch_index):
+            next(reader)
+
+        for i in range(batch_size):
+            row = next(reader)
+            X_center.append(mpimg.imread(row[0]))
+            # X_left.append(mpimg.imread(row[1]))
+            # X_right.append(mpimg.imread(row[2]))
+            y_steering.append(row[3])
+            # y_throttle.append(row[4])
+            # y_brake.append(row[5])
+            # y_speed.append(row[6])
+
+    X_center = np.array(X_center)
+    # X_left = np.array(X_left)
+    # X_right = np.array(X_right)
+    y_steering = np.array(y_steering)
+    # y_throttle = np.array(y_throttle)
+    # y_brake = np.array(y_brake)
+    # y_speed = np.array(y_speed)
+
+    X_train, y_train = preprocessing.preprocess_input(X_center), y_steering
+    batch_index = batch_index + 1
+    # yield X_train, y_train
+
+
+    while True:
+        yield X_train, y_train
+
 def main(_):
-    # load training data
-    X_train, y_train = load_data(FLAGS.drive_log_file)
+    print('Image Shape: ', get_sample_image().shape)
+    print('Training Data Count:', get_training_data_count())
 
-    X_train = preprocessing.preprocess_input(X_train)
 
-    print('Image Shape: ', X_train.shape[1:])
-    print('Training Data Count:', len(X_train))
-
-    model = get_model(X_train.shape[1:])
-    model.fit(X_train, y_train, nb_epoch=10, validation_split=0.2)
+    model = get_model(get_sample_image().shape)
+    model.fit_generator(image_generator(), samples_per_epoch=get_training_data_count(), nb_epoch=10, nb_val_samples=get_training_data_count() * 0.2)
 
     print("Saving model weights and configuration file.")
 
