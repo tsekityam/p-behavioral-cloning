@@ -53,10 +53,10 @@ def get_model(input_shape):
     model.add(ELU())
     model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(Flatten())
-    model.add(Dropout(.2))
+    model.add(Dropout(.5))
     model.add(ELU())
     model.add(Dense(512))
-    model.add(Dropout(.5))
+    model.add(Dropout(.8))
     model.add(ELU())
     model.add(Dense(1))
 
