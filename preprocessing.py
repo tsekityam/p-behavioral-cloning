@@ -14,7 +14,7 @@ def get_images_in_hsv(images):
     return np.array(hsv_images)
 
 def get_resized_images(images):
-    return sndi.zoom(images, [1, 0.5, 0.5, 1])
+    return sndi.zoom(images, [1, 1/3, 1/3, 1])
 
 def preprocess_input(images):
     cropped_images = get_cropped_images(images)
