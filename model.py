@@ -26,7 +26,7 @@ def get_sample_image():
         next(reader)    # skip the first row
 
         row = next(reader)
-        return preprocessing.preprocess_input([mpimg.imread(row[0])])[0]
+        return preprocessing.preprocess_input(np.array([mpimg.imread(row[0])]))[0]
 
 
 def get_training_data_count():
