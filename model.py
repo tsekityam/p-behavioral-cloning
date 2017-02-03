@@ -67,8 +67,8 @@ n_samples = 500
 def image_generator():
     global batch_index
     X_center = []
-    # X_left = []
-    # X_right = []
+    X_left = []
+    X_right = []
     y_steering = []
     # y_throttle = []
     # y_brake = []
@@ -88,22 +88,29 @@ def image_generator():
         for i in range(batch_size):
             row = next(reader)
             X_center.append(mpimg.imread(row[0]))
-            # X_left.append(mpimg.imread(row[1]))
-            # X_right.append(mpimg.imread(row[2]))
+            X_left.append(mpimg.imread(row[1]))
+            X_right.append(mpimg.imread(row[2]))
             y_steering.append(float(row[3]))
             # y_throttle.append(float(row[4]))
             # y_brake.append(float(row[5]))
             # y_speed.append(float(row[6]))
 
     X_center = preprocessing.preprocess_input(np.array(X_center))
-    # X_left = preprocessing.preprocess_input(np.array(X_left))
-    # X_right = preprocessing.preprocess_input(np.array(X_right))
+    X_left = preprocessing.preprocess_input(np.array(X_left))
+    X_right = preprocessing.preprocess_input(np.array(X_right))
     y_steering = np.array(y_steering)
     # y_throttle = np.array(y_throttle)
     # y_brake = np.array(y_brake)
     # y_speed = np.array(y_speed)
 
     X_train, y_train = X_center, y_steering
+
+    X_train = np.append(X_train, X_left)
+    y_train = np.append(y_train, y_steering+0.15)
+
+    X_train = np.append(X_train, X_right)
+    y_train = np.append(y_train, y_steering-0.15)
+
     batch_index = batch_index + 1
     # yield X_train, y_train
 
