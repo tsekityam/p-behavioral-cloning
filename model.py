@@ -8,6 +8,7 @@ import matplotlib.image as mpimg
 import numpy as np
 import os
 import preprocessing
+import scipy.ndimage as sndi
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
@@ -101,6 +102,8 @@ def image_generator():
             # y_throttle.append(float(row[4]))
             # y_brake.append(float(row[5]))
             # y_speed.append(float(row[6]))
+
+    y_steering = sndi.gaussian_filter(y_steering, [3])
 
     X_center = preprocessing.preprocess_input(np.array(X_center))
     X_left = preprocessing.preprocess_input(np.array(X_left))
