@@ -105,11 +105,11 @@ def image_generator():
 
     X_train, y_train = X_center, y_steering
 
-    X_train = np.append(X_train, X_left)
-    y_train = np.append(y_train, y_steering+0.15)
+    X_train = np.append(X_train, X_left, axis=0)
+    y_train = np.append(y_train, y_steering+0.15, axis=0)
 
-    X_train = np.append(X_train, X_right)
-    y_train = np.append(y_train, y_steering-0.15)
+    X_train = np.append(X_train, X_right, axis=0)
+    y_train = np.append(y_train, y_steering-0.15, axis=0)
 
     batch_index = batch_index + 1
     # yield X_train, y_train
