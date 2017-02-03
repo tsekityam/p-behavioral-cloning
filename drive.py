@@ -29,8 +29,6 @@ prev_image_array = None
 
 @sio.on('telemetry')
 def telemetry(sid, data):
-    throttle = 0.2
-    print('1', throttle)
     # The current steering angle of the car
     steering_angle = data["steering_angle"]
     # The current throttle of the car
@@ -40,13 +38,9 @@ def telemetry(sid, data):
     # The current image from the center camera of the car
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
-    print('a', throttle)
     image_array = np.asarray(image)
-    print('b', throttle)
     transformed_image_array = image_array[None, :, :, :]
-    print('c', throttle)
     transformed_image_array = preprocessing.preprocess_input(transformed_image_array)
-    print('d', throttle)
 
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))

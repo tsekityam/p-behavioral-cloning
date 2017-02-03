@@ -93,6 +93,3 @@ ENV/
 # project data
 *.jpg
 *.csv
-
-# simulator
-Default Mac desktop Universal.app/*
