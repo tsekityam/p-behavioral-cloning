@@ -95,15 +95,15 @@ def image_generator():
             # y_brake.append(float(row[5]))
             # y_speed.append(float(row[6]))
 
-    X_center = np.array(X_center)
-    # X_left = np.array(X_left)
-    # X_right = np.array(X_right)
+    X_center = preprocessing.preprocess_input(np.array(X_center))
+    # X_left = preprocessing.preprocess_input(np.array(X_left))
+    # X_right = preprocessing.preprocess_input(np.array(X_right))
     y_steering = np.array(y_steering)
     # y_throttle = np.array(y_throttle)
     # y_brake = np.array(y_brake)
     # y_speed = np.array(y_speed)
 
-    X_train, y_train = preprocessing.preprocess_input(X_center), y_steering
+    X_train, y_train = X_center, y_steering
     batch_index = batch_index + 1
     # yield X_train, y_train
 
