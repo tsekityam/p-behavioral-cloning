@@ -1,3 +1,5 @@
+# python model.py --drive_log_file driving_log.csv
+
 import csv
 import cv2
 import json

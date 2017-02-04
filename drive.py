@@ -1,3 +1,5 @@
+# python drive.py ./outputs/steering_model/steering_angle.json
+
 import argparse
 import base64
 import json
