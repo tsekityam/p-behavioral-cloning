@@ -9,16 +9,18 @@ def get_cropped_images(images):
     return images[0:len(images), 60:height-30, 0:width]
 
 def get_images_in_hsv(images):
-    hsv_images = []
-    for i in range(len(images)):
-        hsv_images.append(cv2.cvtColor(images[i], cv2.COLOR_RGB2HSV))
-    return np.array(hsv_images)
+    return images
+    # hsv_images = []
+    # for i in range(len(images)):
+    #     hsv_images.append(cv2.cvtColor(images[i], cv2.COLOR_RGB2HSV))
+    # return np.array(hsv_images)
 
 def get_resized_images(images):
-    return sndi.zoom(images, [1, 1/3, 1/3, 1])
+    return images
+    # return sndi.zoom(images, [1, 1/2, 1/2, 1])
 
 def preprocess_input(images):
     cropped_images = get_cropped_images(images)
-    # resized_cropped_images = get_resized_images(cropped_images)
-    # resized_cropped_images_hsv = get_images_in_hsv(resized_cropped_images)
-    return np.transpose(cropped_images, (0, 3, 1, 2))
+    resized_cropped_images = get_resized_images(cropped_images)
+    resized_cropped_images_hsv = get_images_in_hsv(resized_cropped_images)
+    return np.transpose(resized_cropped_images_hsv, (0, 3, 1, 2))
