@@ -55,7 +55,7 @@ def get_model(input_shape):
     model.add(ELU())
     model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(Flatten())
-    model.add(Dropout(.2))
+    model.add(Dropout(.5))
     model.add(ELU())
     model.add(Dense(512))
     model.add(Dropout(.5))
@@ -105,7 +105,7 @@ def image_generator():
             # y_brake.append(float(row[5]))
             # y_speed.append(float(row[6]))
 
-    y_steering = sndi.gaussian_filter(y_steering, [3])
+    # y_steering = sndi.gaussian_filter(y_steering, [3])
 
     X_center = preprocessing.preprocess_input(np.array(X_center))
     X_left = preprocessing.preprocess_input(np.array(X_left))
@@ -148,7 +148,7 @@ def main(_):
 
 
     model = get_model(get_sample_image().shape)
-    model.fit_generator(image_generator(), samples_per_epoch=get_training_data_count()*6, nb_epoch=5, nb_val_samples=get_training_data_count() * 0.2)
+    model.fit_generator(image_generator(), samples_per_epoch=get_training_data_count()*6, nb_epoch=10, nb_val_samples=get_training_data_count() * 0.2)
 
     print("Saving model weights and configuration file.")
 
