@@ -60,17 +60,17 @@ def get_model(input_shape):
     model.add(Lambda(lambda x: x/127.5 - 1.,
     input_shape=(row, col, ch),
     output_shape=(row, col, ch)))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu', border_mode="same"))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu', border_mode="same"))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu', border_mode="same"))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', border_mode="same"))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', border_mode="same"))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode="same", W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode="same", W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode="same", W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode="same", W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode="same", W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
     model.add(Flatten())
-    model.add(Dense(1164, activation='relu', W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
-    model.add(Dense(100, activation='relu', W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
-    model.add(Dense(50, activation='relu', W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
-    model.add(Dense(10, activation='relu', W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
-    model.add(Dense(1, activation='relu', W_regularizer=l2(0.01), activity_regularizer=activity_l2(0.01)))
+    model.add(Dense(1164, activation='elu', W_regularizer=l2(0.01)))
+    model.add(Dense(100, activation='elu', W_regularizer=l2(0.01)))
+    model.add(Dense(50, activation='elu', W_regularizer=l2(0.01)))
+    model.add(Dense(10, activation='elu', W_regularizer=l2(0.01)))
+    model.add(Dense(1))
 
     model.compile(optimizer="adam", loss="mse")
 
