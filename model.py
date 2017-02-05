@@ -103,7 +103,7 @@ def main(_):
     X_flip = []
     y_steering = []
 
-    batch_size = 512
+    batch_size = 256
 
     with open(FLAGS.drive_log_file, 'rt') as csvfile:
         reader = csv.reader(csvfile, skipinitialspace=True)
