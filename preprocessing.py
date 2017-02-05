@@ -15,11 +15,13 @@ def get_images_in_yuv(images):
     return np.array(yuv_images)
 
 def get_resized_images(images):
-    return images
-    # return sndi.zoom(images, [1, 1/2, 1/2, 1])
+    resized_images = []
+    for i in range(len(images)):
+        resized_images.append(cv2.resize(images[i].astype(np.uint8), (200, 66), cv2.INTER_AREA))
+    return np.array(resized_images)
 
 def preprocess_input(images):
     images = get_cropped_images(images)
-    # images = get_resized_images(images)
-    # images = get_images_in_yuv(images)
+    images = get_resized_images(images)
+    images = get_images_in_yuv(images)
     return images
