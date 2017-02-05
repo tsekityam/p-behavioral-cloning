@@ -6,6 +6,7 @@ import json
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Lambda
 from keras.layers.convolutional import Convolution2D
+from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2, activity_l2
 import matplotlib.image as mpimg
 import numpy as np
@@ -52,14 +53,8 @@ flags.DEFINE_string('drive_log_file', '', "Drive log file (.csv)")
 
 # model developed by Nvidia
 def get_model(input_shape):
-    row = input_shape[0]
-    col = input_shape[1]
-    ch = input_shape[2]
-
     model = Sequential()
-    model.add(Lambda(lambda x: x/127.5 - 1.,
-    input_shape=(row, col, ch),
-    output_shape=(row, col, ch)))
+    model.add(BatchNormalization(axis=1, input_shape=input_shape))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu'))
@@ -71,7 +66,6 @@ def get_model(input_shape):
     model.add(Dense(100, activation='elu'))
     model.add(Dropout(0.5))
     model.add(Dense(50, activation='elu'))
-    model.add(Dropout(0.5))
     model.add(Dense(10, activation='elu'))
     model.add(Dense(1, activation='elu'))
 
@@ -130,7 +124,7 @@ def main(_):
 
 
     model = get_model(preprocessing.preprocess_input(np.array([sample_image]))[0].shape)
-    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=5)
+    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=10)
 
     print("Saving model weights and configuration file.")
 
