@@ -124,7 +124,7 @@ def main(_):
 
 
     model = get_model(sample_image.shape)
-    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=10)
+    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=5)
 
     print("Saving model weights and configuration file.")
 
