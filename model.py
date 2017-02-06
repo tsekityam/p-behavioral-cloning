@@ -118,12 +118,12 @@ def main(_):
         print('No data found')
         return
 
-    sample_image = mpimg.imread(X_image[0])
+    sample_image = preprocessing.preprocess_input(np.array([mpimg.imread(X_image[0])]))[0]
     print('Image Shape: ', sample_image.shape)
     print('Training Data Count:', len(X_image))
 
 
-    model = get_model(preprocessing.preprocess_input(np.array([sample_image]))[0].shape)
+    model = get_model(sample_image.shape)
     model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=10)
 
     print("Saving model weights and configuration file.")
