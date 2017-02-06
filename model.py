@@ -54,12 +54,14 @@ flags.DEFINE_string('drive_log_file', '', "Drive log file (.csv)")
 # model developed by Nvidia
 def get_model(input_shape):
     model = Sequential()
-    model.add(BatchNormalization(axis=1, input_shape=input_shape))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu'))
+    model.add(Lambda(lambda x: x/127.5 - 1.,
+    input_shape=input_shape,
+    output_shape=input_shape))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same'))
     model.add(Flatten())
     model.add(Dense(1164, activation='elu'))
     model.add(Dense(100, activation='elu'))
