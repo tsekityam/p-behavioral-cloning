@@ -59,11 +59,13 @@ def get_model(input_shape):
     output_shape=input_shape))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', W_regularizer=l2(0.025)))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', W_regularizer=l2(0.025)))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', W_regularizer=l2(0.025)))
     model.add(Flatten())
+    model.add(Dropout(0.1))
     model.add(Dense(1164, activation='elu'))
+    model.add(Dropout(0.5))
     model.add(Dense(100, activation='elu'))
     model.add(Dense(50, activation='elu'))
     model.add(Dense(10, activation='elu'))
@@ -124,7 +126,7 @@ def main(_):
 
 
     model = get_model(sample_image.shape)
-    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=5)
+    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=10240, nb_epoch=5)
 
     print("Saving model weights and configuration file.")
 
