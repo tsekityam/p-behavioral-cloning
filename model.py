@@ -7,7 +7,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten, Lambda
 from keras.layers.convolutional import Convolution2D
 from keras.layers.normalization import BatchNormalization
-from keras.regularizers import l2, activity_l2
+from keras.regularizers import l2
 import matplotlib.image as mpimg
 import numpy as np
 import os
@@ -57,19 +57,20 @@ def get_model(input_shape):
     model.add(Lambda(lambda x: x/127.5 - 1.,
     input_shape=input_shape,
     output_shape=input_shape))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same'))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv1'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv2'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv3'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv4'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv5'))
     model.add(Flatten())
-    model.add(Dense(1164, activation='elu'))
-    model.add(Dense(100, activation='elu'))
-    model.add(Dense(50, activation='elu'))
-    model.add(Dense(10, activation='elu'))
+    model.add(Dense(1164, activation='relu', name='Dens1'))
+    model.add(Dense(100, activation='relu', name='Dens2'))
+    model.add(Dense(50, activation='relu', name='Dens3'))
+    model.add(Dense(10, activation='relu', name='Dens4'))
     model.add(Dense(1))
 
     model.compile(optimizer="adam", loss="mse")
+    model.optimizer.lr.assign(0.005)
 
     return model
 
@@ -124,7 +125,7 @@ def main(_):
 
 
     model = get_model(sample_image.shape)
-    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=len(X_image), nb_epoch=5)
+    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=15360, nb_epoch=5)
 
     print("Saving model weights and configuration file.")
 
