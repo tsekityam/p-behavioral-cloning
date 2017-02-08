@@ -1,4 +1,4 @@
-# python model.py --drive_log_file driving_log.csv
+# python model.py --drive_log_file driving_data.csv
 
 import csv
 import cv2
