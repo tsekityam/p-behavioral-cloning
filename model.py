@@ -64,16 +64,16 @@ def get_model(input_shape):
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', name='Conv4'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', name='Conv5'))
     model.add(Flatten())
-    model.add(Dropout(0.15))
+    model.add(Dropout(0.5))
     model.add(Dense(1164, activation='elu', name='Dens1'))
-    model.add(Dropout(0.1))
+    model.add(Dropout(0.8))
     model.add(Dense(100, activation='elu', name='Dens2'))
     model.add(Dense(50, activation='elu', name='Dens3'))
     model.add(Dense(10, activation='elu', name='Dens4'))
     model.add(Dense(1))
 
     model.compile(optimizer="adam", loss="mse")
-    model.optimizer.lr.assign(0.005)
+    model.optimizer.lr.assign(0.0001)
 
     return model
 
@@ -125,12 +125,12 @@ def main(_):
     sample_image = preprocessing.preprocess_input(np.array([mpimg.imread(X_image[0])]))[0]
     print('Image Shape: ', sample_image.shape)
 
-    X_train_image, X_test_image, X_train_flip, X_test_flip, y_train_steering, y_test_steering = train_test_split(X_image, X_flip, y_steering, test_size=0.2, random_state=42)
+    X_train_image, X_test_image, X_train_flip, X_test_flip, y_train_steering, y_test_steering = train_test_split(X_image, X_flip, y_steering, test_size=0.2)
 
     print('Training Data Count:', len(X_train_image))
     print('Validation Data Count:', len(X_test_image))
 
-    X_train_image, X_train_flip, y_train_steering = shuffle(X_train_image, X_train_flip, y_train_steering, random_state=42)
+    X_train_image, X_train_flip, y_train_steering = shuffle(X_train_image, X_train_flip, y_train_steering)
 
     model = get_model(sample_image.shape)
     model.fit_generator(image_generator(X_train_image, X_train_flip, y_train_steering, batch_size), samples_per_epoch=12288, nb_epoch=5, validation_data=image_generator(X_test_image, X_test_flip, y_test_steering, batch_size), nb_val_samples=3072)
