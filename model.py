@@ -15,6 +15,7 @@ import preprocessing
 import random
 import scipy.ndimage as sndi
 from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
 import tensorflow as tf
 import time
 
@@ -57,16 +58,18 @@ def get_model(input_shape):
     model.add(Lambda(lambda x: x/127.5 - 1.,
     input_shape=input_shape,
     output_shape=input_shape))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv1'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv2'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv3'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv4'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', border_mode='same', W_regularizer=l2(0.01), b_regularizer=l2(0.01), name='Conv5'))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv1'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv2'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv3'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', name='Conv4'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', name='Conv5'))
     model.add(Flatten())
-    model.add(Dense(1164, activation='relu', name='Dens1'))
-    model.add(Dense(100, activation='relu', name='Dens2'))
-    model.add(Dense(50, activation='relu', name='Dens3'))
-    model.add(Dense(10, activation='relu', name='Dens4'))
+    model.add(Dropout(0.15))
+    model.add(Dense(1164, activation='elu', name='Dens1'))
+    model.add(Dropout(0.1))
+    model.add(Dense(100, activation='elu', name='Dens2'))
+    model.add(Dense(50, activation='elu', name='Dens3'))
+    model.add(Dense(10, activation='elu', name='Dens4'))
     model.add(Dense(1))
 
     model.compile(optimizer="adam", loss="mse")
@@ -101,7 +104,7 @@ def main(_):
     X_flip = []
     y_steering = []
 
-    batch_size = 256
+    batch_size = 512
 
     with open(FLAGS.drive_log_file, 'rt') as csvfile:
         reader = csv.reader(csvfile, skipinitialspace=True)
@@ -121,11 +124,16 @@ def main(_):
 
     sample_image = preprocessing.preprocess_input(np.array([mpimg.imread(X_image[0])]))[0]
     print('Image Shape: ', sample_image.shape)
-    print('Training Data Count:', len(X_image))
 
+    X_train_image, X_test_image, X_train_flip, X_test_flip, y_train_steering, y_test_steering = train_test_split(X_image, X_flip, y_steering, test_size=0.2, random_state=42)
+
+    print('Training Data Count:', len(X_train_image))
+    print('Validation Data Count:', len(X_test_image))
+
+    X_train_image, X_train_flip, y_train_steering = shuffle(X_train_image, X_train_flip, y_train_steering, random_state=42)
 
     model = get_model(sample_image.shape)
-    model.fit_generator(image_generator(X_image, X_flip, y_steering, batch_size), samples_per_epoch=15360, nb_epoch=5)
+    model.fit_generator(image_generator(X_train_image, X_train_flip, y_train_steering, batch_size), samples_per_epoch=12288, nb_epoch=5, validation_data=image_generator(X_test_image, X_test_flip, y_test_steering, batch_size), nb_val_samples=3072)
 
     print("Saving model weights and configuration file.")
 

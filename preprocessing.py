@@ -6,7 +6,7 @@ def get_cropped_images(images):
     shape = images[0].shape
     height = shape[0]
     width = shape[1]
-    return images[0:len(images), 60:height-30, 0:width]
+    return images[0:len(images), 80:height-30, 0:width]
 
 def get_images_in_yuv(images):
     yuv_images = []
