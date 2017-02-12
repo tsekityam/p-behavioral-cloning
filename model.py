@@ -36,20 +36,21 @@ def get_model(input_shape):
     model.add(Lambda(lambda x: x/127.5 - 1.,
     input_shape=(ch, row, col),
     output_shape=(ch, row, col)))
-    model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same", W_regularizer=l2(0.0005), b_regularizer=l2(0.01)))
+    model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
     model.add(ELU())
-    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same", W_regularizer=l2(0.0005), b_regularizer=l2(0.01)))
+    model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(ELU())
-    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same", W_regularizer=l2(0.0005), b_regularizer=l2(0.01)))
+    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same", W_regularizer=l2(0.01), b_regularizer=l2(0.01)))
     model.add(Flatten())
-    model.add(Dropout(.5))
+    model.add(Dropout(.2))
     model.add(ELU())
     model.add(Dense(512))
-    model.add(Dropout(.8))
+    model.add(Dropout(.2))
     model.add(ELU())
     model.add(Dense(1))
 
     model.compile(optimizer="adam", loss="mse")
+    model.optimizer.lr.assign(0.0001)
 
     return model
 
@@ -104,13 +105,13 @@ def main(_):
     if not os.path.exists("./outputs/steering_model"):
         os.makedirs("./outputs/steering_model")
 
+    batch_size = 512
+
     X_image = []
     X_flip = []
     y_steering = []
 
-    batch_size = 512
-
-    with open(FLAGS.drive_log_file, 'rt') as csvfile:
+    with open('driving_data.csv', 'rt') as csvfile:
         reader = csv.reader(csvfile, skipinitialspace=True)
 
         for row in reader:
@@ -118,18 +119,50 @@ def main(_):
             X_flip.append(float(row[1]))
             y_steering.append(float(row[2]))
 
+    # X_train_image = np.array(X_train_image)
+    # X_train_flip = np.array(X_train_flip)
+    # y_train_steering = np.array(y_train_steering)
+
+    # X_test_image = []
+    # X_test_flip = []
+    # y_test_steering = []
+
+    with open('Run_1/driving_log.csv', 'rt') as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+
+        for row in reader:
+            X_image.append(row[0])
+            X_flip.append(0)
+            y_steering.append(float(row[3]))
+
+    with open('Run_2/driving_log.csv', 'rt') as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+
+        for row in reader:
+            X_image.append(row[0])
+            X_flip.append(0)
+            y_steering.append(float(row[3]))
+
+    with open('Run_3/driving_log.csv', 'rt') as csvfile:
+        reader = csv.reader(csvfile, skipinitialspace=True)
+
+        for row in reader:
+            X_image.append(row[0])
+            X_flip.append(0)
+            y_steering.append(float(row[3]))
+
     X_image = np.array(X_image)
     X_flip = np.array(X_flip)
     y_steering = np.array(y_steering)
 
-    if len(X_image) == 0:
+    X_train_image, X_test_image, X_train_flip, X_test_flip, y_train_steering, y_test_steering = train_test_split(X_image, X_flip, y_steering, test_size=0.2)
+
+    if len(X_train_image) == 0:
         print('No data found')
         return
 
-    sample_image = preprocessing.preprocess_input(np.array([mpimg.imread(X_image[0])]))[0]
+    sample_image = preprocessing.preprocess_input(np.array([mpimg.imread(X_train_image[0])]))[0]
     print('Image Shape: ', sample_image.shape)
-
-    X_train_image, X_test_image, X_train_flip, X_test_flip, y_train_steering, y_test_steering = train_test_split(X_image, X_flip, y_steering, test_size=0.2)
 
     print('Training Data Count:', len(X_train_image))
     print('Validation Data Count:', len(X_test_image))
@@ -137,11 +170,11 @@ def main(_):
     X_train_image, X_train_flip, y_train_steering = shuffle(X_train_image, X_train_flip, y_train_steering)
 
     model = get_model(sample_image.shape)
-    model.fit_generator(image_generator(X_train_image, X_train_flip, y_train_steering, batch_size), samples_per_epoch=1024*12, nb_epoch=50, validation_data=image_generator(X_test_image, X_test_flip, y_test_steering, batch_size), nb_val_samples=1024*5, callbacks=[EarlyStopping(patience=1, verbose=1), ReduceLROnPlateau( patience=0, min_lr=0.00001, factor=0.5, verbose=1)])
+    model.fit_generator(image_generator(X_train_image, X_train_flip, y_train_steering, batch_size), samples_per_epoch=1024*20, nb_epoch=5, validation_data=image_generator(X_test_image, X_test_flip, y_test_steering, batch_size), nb_val_samples=1024)
 
     print("Saving model weights and configuration file.")
 
-    # model.save_weights("./outputs/steering_model/steering_angle.keras", True)
+    model.save_weights("./outputs/steering_model/steering_angle.keras", True)
     with open('./outputs/steering_model/steering_angle.json', 'w') as outfile:
         json.dump(model.to_json(), outfile)
 
