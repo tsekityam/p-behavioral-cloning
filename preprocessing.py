@@ -30,6 +30,6 @@ def preprocess_input(images):
     images = get_cropped_images(images)
     images = get_resized_images(images)
     images = get_images_in_yuv(images)
-    images = get_blured_images(images)
+    # images = get_blured_images(images)
 
     return np.transpose(images, (0, 3, 1, 2))

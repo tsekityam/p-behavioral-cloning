@@ -5,7 +5,7 @@ import cv2
 import json
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Lambda, ELU
+from keras.layers import Dense, Dropout, Flatten, Lambda, ELU, Merge
 from keras.layers.convolutional import Convolution2D
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
@@ -27,7 +27,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string('drive_log_file', '', "Drive log file (.csv)")
 
 # model developed by comma.ai
-def get_model(input_shape):
+def get_comma_ai_model(input_shape):
     ch = input_shape[0]
     row = input_shape[1]
     col = input_shape[2]
@@ -40,44 +40,38 @@ def get_model(input_shape):
     model.add(ELU())
     model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(ELU())
-    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same", W_regularizer=l2(0.01), b_regularizer=l2(0.01)))
+    model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
     model.add(Flatten())
     model.add(Dropout(.2))
     model.add(ELU())
     model.add(Dense(512))
-    model.add(Dropout(.2))
+    model.add(Dropout(.5))
     model.add(ELU())
     model.add(Dense(1))
 
-    model.compile(optimizer="adam", loss="mse")
-    model.optimizer.lr.assign(0.0001)
-
     return model
 
-# # model developed by Nvidia
-# def get_model(input_shape):
-#     model = Sequential()
-#     model.add(Lambda(lambda x: x/127.5 - 1.,
-#     input_shape=input_shape,
-#     output_shape=input_shape))
-#     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv1'))
-#     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv2'))
-#     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', W_regularizer=l2(0.0005), b_regularizer=l2(0.0005), name='Conv3'))
-#     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', W_regularizer=l2(0.0005), b_regularizer=l2(0.0005), name='Conv4'))
-#     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', W_regularizer=l2(0.0005), b_regularizer=l2(0.0005), name='Conv5'))
-#     model.add(Flatten())
-#     model.add(Dropout(0.5))
-#     model.add(Dense(1164, activation='elu', name='Dens1'))
-#     model.add(Dropout(0.8))
-#     model.add(Dense(100, activation='elu', name='Dens2'))
-#     model.add(Dense(50, activation='elu', name='Dens3'))
-#     model.add(Dense(10, activation='elu', name='Dens4'))
-#     model.add(Dense(1))
-#
-#     model.compile(optimizer="adam", loss="mse")
-#     model.optimizer.lr.assign(0.0001)
-#
-#     return model
+# model developed by Nvidia
+def get_nvidia_model(input_shape):
+    model = Sequential()
+    model.add(Lambda(lambda x: x/127.5 - 1.,
+    input_shape=input_shape,
+    output_shape=input_shape))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv1'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', name='Conv2'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='elu', border_mode='same', W_regularizer=l2(0.0005), b_regularizer=l2(0.0005), name='Conv3'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', W_regularizer=l2(0.0005), b_regularizer=l2(0.0005), name='Conv4'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='elu', border_mode='same', W_regularizer=l2(0.0005), b_regularizer=l2(0.0005), name='Conv5'))
+    model.add(Flatten())
+    model.add(Dropout(0.5))
+    model.add(Dense(1164, activation='elu', name='Dens1'))
+    model.add(Dropout(0.8))
+    model.add(Dense(100, activation='elu', name='Dens2'))
+    model.add(Dense(50, activation='elu', name='Dens3'))
+    model.add(Dense(10, activation='elu', name='Dens4'))
+    model.add(Dense(1))
+
+    return model
 
 n_samples = 500
 
@@ -99,7 +93,8 @@ def image_generator(X_image, X_flip, y_steering, batch_size):
                 batch_features[i] = cv2.flip(image, flipCode=1)
                 batch_labels[i] = y_steering[index]
 
-        yield preprocessing.preprocess_input(batch_features), batch_labels
+        processed_feature = preprocessing.preprocess_input(batch_features)
+        yield [processed_feature, processed_feature], batch_labels
 
 def main(_):
     if not os.path.exists("./outputs/steering_model"):
@@ -119,38 +114,6 @@ def main(_):
             X_flip.append(float(row[1]))
             y_steering.append(float(row[2]))
 
-    # X_train_image = np.array(X_train_image)
-    # X_train_flip = np.array(X_train_flip)
-    # y_train_steering = np.array(y_train_steering)
-
-    # X_test_image = []
-    # X_test_flip = []
-    # y_test_steering = []
-
-    with open('Run_1/driving_log.csv', 'rt') as csvfile:
-        reader = csv.reader(csvfile, skipinitialspace=True)
-
-        for row in reader:
-            X_image.append(row[0])
-            X_flip.append(0)
-            y_steering.append(float(row[3]))
-
-    with open('Run_2/driving_log.csv', 'rt') as csvfile:
-        reader = csv.reader(csvfile, skipinitialspace=True)
-
-        for row in reader:
-            X_image.append(row[0])
-            X_flip.append(0)
-            y_steering.append(float(row[3]))
-
-    with open('Run_3/driving_log.csv', 'rt') as csvfile:
-        reader = csv.reader(csvfile, skipinitialspace=True)
-
-        for row in reader:
-            X_image.append(row[0])
-            X_flip.append(0)
-            y_steering.append(float(row[3]))
-
     X_image = np.array(X_image)
     X_flip = np.array(X_flip)
     y_steering = np.array(y_steering)
@@ -169,8 +132,17 @@ def main(_):
 
     X_train_image, X_train_flip, y_train_steering = shuffle(X_train_image, X_train_flip, y_train_steering)
 
-    model = get_model(sample_image.shape)
-    model.fit_generator(image_generator(X_train_image, X_train_flip, y_train_steering, batch_size), samples_per_epoch=1024*20, nb_epoch=5, validation_data=image_generator(X_test_image, X_test_flip, y_test_steering, batch_size), nb_val_samples=1024)
+    comma_ai_model = get_comma_ai_model(sample_image.shape)
+    nvidia_model = get_nvidia_model(sample_image.shape)
+
+    merged = Merge([comma_ai_model, nvidia_model])
+
+    model = Sequential()
+    model.add(merged)
+    model.add(Dense(1, activation='elu'))
+    model.compile(optimizer="adam", loss="mse")
+
+    model.fit_generator(image_generator(X_train_image, X_train_flip, y_train_steering, batch_size), samples_per_epoch=1024*25, nb_epoch=5, validation_data=image_generator(X_test_image, X_test_flip, y_test_steering, batch_size), nb_val_samples=1024 * 5)
 
     print("Saving model weights and configuration file.")
 
