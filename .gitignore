@@ -94,4 +94,4 @@ ENV/
 *.jpg
 
 # simulator
-Default Mac desktop Universal.app/*
+*.app/*
