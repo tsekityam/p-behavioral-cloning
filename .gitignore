@@ -91,6 +91,7 @@ ENV/
 .ropeproject
 
 # project data
+*.csv
 *.jpg
 
 # simulator
